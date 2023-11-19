@@ -41,7 +41,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AllSchedule'
+                $ref: '#/components/schemas/ScheduleList'
   /showmovies/{date}:
     get:
       tags:
@@ -68,7 +68,7 @@ paths:
           description: bad input parameter
 components:
   schemas:
-    AllSchedule:
+    ScheduleList:
       required:
       - schedule
       type: object

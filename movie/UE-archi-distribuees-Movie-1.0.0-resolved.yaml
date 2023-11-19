@@ -48,7 +48,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AllMovies'
+                $ref: '#/components/schemas/MovieList'
   /movies/{movieid}:
     get:
       tags:
@@ -106,7 +106,7 @@ paths:
       tags:
       - admins
       summary: delete a movie item
-      description: Adds a movie to the system
+      description: Delete a movie from the system
       operationId: del_movie
       parameters:
       - name: movieid
@@ -122,13 +122,34 @@ paths:
           description: item deleted
         "400":
           description: ID not found
+  /movies/director/{director}:
+    get:
+      summary: Get movies by director
+      description: Returns a list of movies directed by the specified director.
+      parameters:
+        - in: path
+          name: director
+          required: true
+          schema:
+            type: string
+          description: The name of the director to filter movies by.
+      responses:
+        '200':
+          description: A list of movies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MovieList'
+        '404':
+          description: No movies found for this director
   /titles:
     get:
       tags:
       - developers
       summary: get the movie by its title
-      description: |
-        By passing in the appropriate options, you can get Movie info
+      description: By passing in the appropriate options, you can get Movie info
       operationId: get_movie_bytitle
       parameters:
       - name: title
@@ -181,7 +202,7 @@ paths:
           description: movie ID not found
 components:
   schemas:
-    AllMovies:
+    MovieList:
       type: object
       required:
         - movies

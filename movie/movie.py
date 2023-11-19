@@ -37,6 +37,12 @@ def get_movie_byid(movieid):
             return res
     return make_response(jsonify({"error": "Movie ID not found"}), 404)
 
+@app.route("/movies/director/<director>", methods=['GET'])
+def get_movies_by_director(director):
+    matching_movies = [movie for movie in movies if movie['director'].lower() == director.lower()]
+    if not matching_movies:
+        return make_response(jsonify({"error": "No movies found for this director"}), 404)
+    return make_response(jsonify(matching_movies), 200)
 
 @app.route("/moviesbytitle", methods=['GET'])
 def get_movie_bytitle():
