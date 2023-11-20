@@ -47,6 +47,14 @@ def add_booking_byuser(userid):
     except ValueError:
         return make_response(jsonify({"error": "Invalid date format"}), 400)
 
+    # Faire une requête au service Showtime pour vérifier la disponibilité du film
+    try:
+        showtime_response = requests.get(f"http://localhost:3202/showmovies/{booking_data['date']}")
+        if showtime_response.status_code != 200 or booking_data['movieid'] not in showtime_response.json()["movies"]:
+            return make_response(jsonify({"error": "Movie not available on this date"}), 404)
+    except requests.exceptions.RequestException as e:
+        return make_response(jsonify({"error": str(e)}), 500)
+
     user_found = False
     date_already_booked = False
 
