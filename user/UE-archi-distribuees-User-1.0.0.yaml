@@ -1,22 +1,24 @@
 openapi: 3.1.0
 info:
   title: User API
-  description: API for managing user information and interactions with Booking and Movie services.
+  description: API for managing user interactions with Booking and Movie services, including retrieving user bookings and movie details.
+  contact:
+    email: zineddine.chalekh@imt-atlantique.net, matthis.bleuet@imt-atlantique.net
   license:
-    name: GPL v3
+    name: GNU General Public License v3 (GPL-3)
     url: https://www.gnu.org/licenses/gpl-3.0.en.html
   version: 1.0.0
 tags:
-  - name: admins
-    description: Secured Admin-only calls
   - name: developers
     description: Operations available to regular developers
+
 paths:
   /users/{userId}/bookings:
     get:
       tags:
         - developers
       summary: Retrieve bookings for a specific user
+      description: Retrieves all the bookings associated with a specific user ID.
       operationId: getUserBookings
       parameters:
         - name: userId
@@ -24,22 +26,23 @@ paths:
           required: true
           schema:
             type: string
-          description: Unique identifier of the user
+          description: Unique identifier of the user.
       responses:
         "200":
-          description: Bookings of the user
+          description: Successful response with user's bookings.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/BookingsUser'
-        '404':
-          description: User not found
+        "404":
+          description: User not found.
 
   /users/{userId}/bookings/movies:
     get:
       tags:
         - developers
       summary: Retrieve movie details for user's bookings
+      description: Retrieves details of movies for a user's bookings on specific dates.
       operationId: getUserBookingMovies
       parameters:
         - name: userId
@@ -47,52 +50,49 @@ paths:
           required: true
           schema:
             type: string
-          description: Unique identifier of the user
+          description: Unique identifier of the user.
       responses:
-        '200':
-          description: Movie details for the user's bookings
+        "200":
+          description: Successful response with movie details for the user's bookings.
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/MovieItem'
-        '404':
-          description: User or booking not found
+                  $ref: '#/components/schemas/Movie'
+        "404":
+          description: User or booking not found.
 
 components:
   schemas:
-
     BookingsUser:
-      required:
-        - dates
-        - userid
       type: object
+      required:
+        - userid
+        - dates
       properties:
         userid:
           type: string
-          example: chris_rivers
+          example: user123
         dates:
           type: array
           items:
             $ref: '#/components/schemas/DateItem'
-
     DateItem:
+      type: object
       required:
         - date
         - movies
-      type: object
       properties:
         date:
           type: string
-          example: "20151201"
+          example: "20230101"
         movies:
           type: array
           items:
             type: string
-            example: 276c79ec-a26a-40a6-b3d3-fb242a5947b6
-
-    MovieItem:
+            example: "39ab85e5-5e8e-4dc5-afea-65dc368bd7ab"
+    Movie:
       type: object
       required:
         - title
@@ -102,13 +102,15 @@ components:
       properties:
         title:
           type: string
-          example: The Martian
+          example: The Good Dinosaur
         rating:
-          type: integer
-          example: 7
+          type: number
+          format: float
+          example: 7.4
         director:
           type: string
-          example: Paul McGuigan
+          example: Peter Sohn
         id:
           type: string
-          example: 39ab85e5-5e8e-4dc5-afea-65dc368bd7ab
+          format: uuid
+          example: 720d006c-3a57-4b6a-b18f-9b713b073f3c

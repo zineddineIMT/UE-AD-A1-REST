@@ -1,87 +1,85 @@
----
 openapi: 3.1.0
 info:
   title: Showtime API
-  description: This is the API of the Showtime service
+  description: API for managing and retrieving movie showtimes, allowing users to view showtimes by date.
   contact:
-    email: helene.coullon@imt-atlantique.fr
+    email: zineddine.chalekh@imt-atlantique.net, matthis.bleuet@imt-atlantique.net
   license:
-    name: GPL v3
+    name: GNU General Public License v3 (GPL-3)
     url: https://www.gnu.org/licenses/gpl-3.0.en.html
   version: 1.0.0
 tags:
-- name: admins
-  description: Secured Admin-only calls
-- name: developers
-  description: Operations available to regular developers
+  - name: developers
+    description: Operations available to regular developers
+
 paths:
   /:
     get:
       tags:
-      - developers
-      summary: home page of the service
+        - developers
+      summary: Home Page
+      description: Displays a welcome message for the Showtime service.
       operationId: home
       responses:
         "200":
-          description: welcome message
+          description: Welcome message displayed.
           content:
             text/html:
               schema:
                 type: string
-                example: <h1>Test</h1>
+                example: "<h1 style='color:blue'>Welcome to the Showtime service!</h1>"
+
   /showtimes:
     get:
       tags:
-      - developers
-      summary: get the full JSON database
+        - developers
+      summary: Get All Showtimes
+      description: Retrieves a list of all showtimes.
       operationId: get_schedule
       responses:
         "200":
-          description: full JSON
+          description: Successful response with a list of showtimes.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ScheduleList'
+
   /showmovies/{date}:
     get:
       tags:
-      - developers
-      summary: get the schedule by date
-      operationId: get_movies_bydate
+        - developers
+      summary: Get Showtimes by Date
+      description: Retrieves the schedule of movies for a specific date.
+      operationId: get_movies_by_date
       parameters:
-      - name: date
-        in: path
-        description: date.
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
+        - name: date
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The specific date to retrieve showtimes for, formatted as YYYYMMDD.
       responses:
         "200":
-          description: Schedule
+          description: Schedule for the specified date.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Schedule'
         "400":
-          description: bad input parameter
+          description: Bad input parameter, invalid date format.
+
 components:
   schemas:
     ScheduleList:
-      required:
-      - schedule
-      type: object
-      properties:
-        schedule:
-          type: array
-          items:
-            $ref: '#/components/schemas/Schedule'
+      type: array
+      items:
+        $ref: '#/components/schemas/Schedule'
+
     Schedule:
-      required:
-      - date
-      - movies
       type: object
+      required:
+        - date
+        - movies
       properties:
         date:
           type: string

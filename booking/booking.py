@@ -1,92 +1,44 @@
-from flask import Flask, render_template, request, jsonify, make_response
-import requests
-import json
-from datetime import datetime
-from werkzeug.exceptions import NotFound
+from flask import Flask, request, jsonify, make_response
+import booking_operations as bops
 
+# Initialisation de l'application Flask
 app = Flask(__name__)
 
+# Définition du port et de l'adresse hôte pour le serveur
 PORT = 3201
 HOST = '0.0.0.0'
 
-with open('{}/databases/bookings.json'.format("."), "r") as jsf:
-   bookings = json.load(jsf)["bookings"]
-
+# Route pour la page d'accueil
 @app.route("/", methods=['GET'])
 def home():
-   return "<h1 style='color:blue'>Welcome to the Booking service!</h1>"
+    # Renvoie un message de bienvenue
+    return "<h1 style='color:blue'>Welcome to the Booking service!</h1>"
 
+# Route pour obtenir toutes les réservations
 @app.route("/bookings", methods=['GET'])
-def get_json():
-    # Renvoie la liste complète des réservations
-    return jsonify({"bookings": bookings})
+def get_all_bookings_route():
+    # Utilise la fonction get_all_bookings pour récupérer les réservations
+    return jsonify({"bookings": bops.get_all_bookings()})
 
+# Route pour obtenir les réservations d'un utilisateur spécifique
 @app.route("/bookings/<userid>", methods=['GET'])
-def get_booking_for_user(userid):
-    user_bookings = []
-    for booking in bookings:
-        if booking["userid"] == userid:
-            user_bookings.append(booking)
+def get_bookings_for_user_route(userid):
+    # Récupère les réservations pour un utilisateur et renvoie une réponse adaptée
+    user_bookings, status_code = bops.get_bookings_for_user(userid)
+    return make_response(jsonify(user_bookings), status_code)
 
-    if not user_bookings:
-        return make_response(jsonify({"error": "No bookings found for this user"}), 404)
-
-    return jsonify(user_bookings)
-
+# Route pour ajouter une réservation pour un utilisateur
 @app.route("/bookings/<userid>", methods=['POST'])
-def add_booking_byuser(userid):
+def add_booking_by_user_route(userid):
+    # Récupère les données de réservation envoyées par l'utilisateur
     booking_data = request.get_json()
+    # Ajoute la réservation et renvoie une réponse adaptée
+    response, status_code = bops.add_booking_by_user(userid, booking_data)
+    return make_response(jsonify(response), status_code)
 
-    # Vérification de la structure et du format de données
-    if not booking_data or 'date' not in booking_data or 'movieid' not in booking_data:
-        return make_response(jsonify({"error": "Invalid data format"}), 400)
-
-    # Vérification du format de la date
-    try:
-        datetime.strptime(booking_data['date'], '%Y%m%d')
-    except ValueError:
-        return make_response(jsonify({"error": "Invalid date format"}), 400)
-
-    # Faire une requête au service Showtime pour vérifier la disponibilité du film
-    try:
-        showtime_response = requests.get(f"http://localhost:3202/showmovies/{booking_data['date']}")
-        if showtime_response.status_code != 200 or booking_data['movieid'] not in showtime_response.json()["movies"]:
-            return make_response(jsonify({"error": "Movie not available on this date"}), 404)
-    except requests.exceptions.RequestException as e:
-        return make_response(jsonify({"error": str(e)}), 500)
-
-    user_found = False
-    date_already_booked = False
-
-    # Parcourir les réservations pour vérifier si l'utilisateur et la date existent
-    for booking in bookings:
-        if booking['userid'] == userid:
-            user_found = True
-            for date in booking['dates']:
-                if date['date'] == booking_data['date']:
-                    date_already_booked = True
-                    break
-            if date_already_booked:
-                break
-
-    if date_already_booked:
-        return make_response(jsonify({"error": "An existing item already exists"}), 409)
-
-    # Ajout de la réservation pour un utilisateur existant ou un nouvel utilisateur
-    if user_found:
-        for booking in bookings:
-            if booking['userid'] == userid:
-                booking['dates'].append({"date": booking_data['date'], "movies": [booking_data['movieid']]})
-                break
-    else:
-        new_user_booking = {
-            "userid": userid,
-            "dates": [{"date": booking_data['date'], "movies": [booking_data['movieid']]}]
-        }
-        bookings.append(new_user_booking)
-
-    return jsonify(booking_data), 200
-
+# Point d'entrée principal pour exécuter l'application Flask
 if __name__ == "__main__":
-   print("Server running in port %s"%(PORT))
-   app.run(host=HOST, port=PORT)
+    # Affichage du port sur lequel le serveur est en cours d'exécution
+    print(f"Server running in port {PORT}")
+    # Démarrage du serveur Flask
+    app.run(host=HOST, port=PORT)
