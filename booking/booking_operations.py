@@ -45,18 +45,26 @@ def add_booking_by_user(userid, booking_data):
         return {"error": str(e)}, 500
 
     # Vérifie si l'utilisateur a déjà une réservation pour cette date et ce film
+
+    date_already_booked = False
+
     for booking in bookings:
         if booking['userid'] == userid:
             for d in booking['dates']:
                 if d['date'] == booking_data['date']:
+                    date_already_booked = True
                     if booking_data['movieid'] in d['movies']:
                         return {"error": "An existing item already exists"}, 409
 
     # Ajoute la réservation pour un utilisateur existant ou crée une nouvelle entrée pour un nouvel utilisateur
     new_booking = {"date": booking_data['date'], "movies": [booking_data['movieid']]}
-    existing_user = next((b for b in bookings if b["userid"] == userid), None)
-    if existing_user:
-        existing_user['dates'].append(new_booking)
+    existing_user_book = next((b for b in bookings if b["userid"] == userid), None)
+    existing_user_dates = existing_user_book['dates']
+    if existing_user_book:
+        if date_already_booked:
+            existing_user_dates[0]['movies'].append(booking_data['movieid'])
+        else:
+            existing_user_dates.append(new_booking)
     else:
         bookings.append({"userid": userid, "dates": [new_booking]})
 
